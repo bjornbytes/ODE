@@ -1,0 +1,41 @@
+#ifndef ODE_CONFIG_H
+#define ODE_CONFIG_H
+
+#cmakedefine C_ALLOCA
+#cmakedefine HAVE_ALLOCA_H
+#cmakedefine HAVE_MALLOC_H
+#cmakedefine HAVE_STDINT_H
+#cmakedefine HAVE_INTTYPES_H
+#cmakedefine HAVE_SYS_TIME_H
+#cmakedefine HAVE_UNISTD_H
+
+#cmakedefine HAVE_CLOCK_GETTIME
+#cmakedefine HAVE_GETTIMEOFDAY
+#cmakedefine HAVE_ISNAN
+#cmakedefine HAVE_ISNANF
+#cmakedefine HAVE__ISNAN
+#cmakedefine HAVE__ISNANF
+#cmakedefine HAVE_PTHREAD_ATTR_SETSTACKLAZY
+
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
+#ifdef dSINGLE
+#define dEpsilon FLT_EPSILON
+#else
+#define dEpsilon DBL_EPSILON
+#endif
+
+#include "typedefs.h"
+
+#endif
