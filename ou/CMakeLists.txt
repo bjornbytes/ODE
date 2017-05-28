@@ -3,4 +3,14 @@ project(ou)
 
 include_directories(include)
 
-add_subdirectory(src/ou)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -fno-rtti")
+set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -fno-exceptions -fno-rtti")
+
+set(OU_SRC
+  src/ou/atomic.cpp
+  src/ou/customization.cpp
+  src/ou/malloc.cpp
+  src/ou/threadlocalstorage.cpp
+)
+
+add_library(ou STATIC ${OU_SRC})
