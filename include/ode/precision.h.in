@@ -10,7 +10,7 @@
 #elif defined(dIDEDOUBLE)
 #define dDOUBLE
 #else
-#cmakedefine ODE_PRECISION @ODE_PRECISION@
+#define ${ODE_PRECISION}
 #endif
 
 #endif
