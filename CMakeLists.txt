@@ -1,7 +1,18 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(ode C CXX)
 
-# config.h
+# Options
+option(ODE_BUILD_DEMOS "Build ODE demos" OFF)
+option(ODE_BUILD_TESTS "Build ODE tests" OFF)
+option(ODE_WITH_DIF_EXPORT "Build ODE with DIF export" OFF)
+option(ODE_WITH_GIMPACT "Build ODE with GIMPACT instead of OPCODE for trimesh collisions (if enabled)" OFF)
+option(ODE_WITH_LIBCCD "Build ODE with libccd for extra collision tests" OFF)
+option(ODE_WITH_OU "Build ODE with OU for threaded collision tests" ON)
+option(ODE_WITH_TRIMESH "Build ODE with trimesh shapes" ON)
+option(ODE_BUILD_SHARED "Build a shared library for ODE" OFF)
+option(ODE_DOUBLE_PRECISION "Build ODE with double precision math instead of single precision" OFF)
+
+# Generated headers
 include(CheckFunctionExists)
 include(CheckIncludeFiles)
 
@@ -21,35 +32,67 @@ check_include_files(inttypes.h HAVE_INTTYPES_H)
 check_include_files(sys/time.h HAVE_SYS_TIME_H)
 check_include_files(unistd.h HAVE_UNISTD_H)
 
+if(ODE_DOUBLE_PRECISION)
+  set(ODE_PRECISION "dDOUBLE")
+else()
+  set(ODE_PRECISION "dSINGLE")
+endif()
+
+if(ODE_WITH_TRIMESH)
+  set(dTRIMESH_ENABLED 1)
+  if(ODE_WITH_GIMPACT)
+    set(dTRIMESH_GIMPACT 1)
+  else()
+    set(dTRIMESH_OPCODE 1)
+  endif()
+endif()
+
+if(ODE_WITH_OU)
+  set(dOU_ENABLED 1)
+  set(dTLS_ENABLED 1)
+endif()
+
 configure_file(ode/src/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/ode/src/config.h")
-
-# version.h
 configure_file(include/ode/version.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/ode/version.h")
-
-# precision.h
 configure_file(include/ode/precision.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/ode/precision.h")
 
+# Demos
+if(ODE_BUILD_DEMOS)
+  #add_subdirectory(demos)
+endif()
+
+# Tests
+if(ODE_BUILD_TESTS)
+  #add_subdirectory(tests)
+endif()
+
 # OU
-if(TRUE)
+if(ODE_WITH_OU)
   if(APPLE)
     add_definitions(-DMAC_OS_X_VERSION=1030)
   endif()
 
-  add_definitions(-DdOU_ENABLED=1)
-  add_definitions(-DdATOMICS_ENABLED=1)
   add_definitions(-D_OU_NAMESPACE=odeou)
+  add_definitions(-DdATOMICS_ENABLED=1) # ?
 
   include_directories(ou/include)
   add_subdirectory(ou ou)
+  set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:ou>)
 endif()
 
 include_directories(include ode/src "${CMAKE_CURRENT_BINARY_DIR}/ode/src" "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 # ODE
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__ODE__")
-add_definitions(-DdSINGLE)
+if(WIN32)
+  if(ODE_BUILD_SHARED)
+    add_definitions(ODE_DLL)
+  else()
+    add_definitions(ODE_LIB)
+  endif()
+endif()
 
 set(ODE_SRC
+  ${ODE_SRC}
   ode/src/nextafterf.c
   ode/src/array.cpp
   ode/src/box.cpp
@@ -70,7 +113,6 @@ set(ODE_SRC
   ode/src/convex.cpp
   ode/src/cylinder.cpp
   ode/src/error.cpp
-  ode/src/export-dif.cpp
   ode/src/heightfield.cpp
   ode/src/lcp.cpp
   ode/src/mass.cpp
@@ -121,5 +163,37 @@ set(ODE_SRC
   ode/src/joints/universal.cpp
 )
 
-add_library(ode STATIC ${ODE_SRC})
-target_link_libraries(ode ou)
+if(ODE_WITH_DIF_EXPORT)
+  set(ODE_SRC ${ODE_SRC} ode/src/export-dif.cpp)
+endif()
+
+if(ODE_WITH_TRIMESH)
+  set(ODE_SRC ${ODE_SRC}
+    ode/src/collision_trimesh_internal.cpp
+    ode/src/collision_trimesh_box.cpp
+    ode/src/collision_trimesh_ccylinder.cpp
+    ode/src/collision_cylinder_trimesh.cpp
+    ode/src/collision_trimesh_ray.cpp
+    ode/src/collision_trimesh_sphere.cpp
+    ode/src/collision_trimesh_trimesh.cpp
+    ode/src/collision_trimesh_trimesh_old.cpp
+    ode/src/collision_trimesh_plane.cpp
+    ode/src/collision_convex_trimesh.cpp
+  )
+
+  if(ODE_WITH_GIMPACT)
+    add_subdirectory(GIMPACT GIMPACT)
+    set(ODE_SRC ${ODE_SRC} ode/src/gimpact_contact_export_helper.cpp ode/src/collision_trimesh_gimpact.cpp)
+    set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:GIMPACT>)
+  else()
+    add_subdirectory(OPCODE OPCODE)
+    set(ODE_SRC ${ODE_SRC} ode/src/collision_trimesh_opcode.cpp)
+    set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:OPCODE>)
+  endif()
+endif()
+
+if(ODE_BUILD_SHARED)
+  add_library(ode SHARED ${ODE_SRC})
+else()
+  add_library(ode STATIC ${ODE_SRC})
+endif()

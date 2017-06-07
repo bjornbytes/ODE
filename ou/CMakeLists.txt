@@ -13,4 +13,4 @@ set(OU_SRC
   src/ou/threadlocalstorage.cpp
 )
 
-add_library(ou STATIC ${OU_SRC})
+add_library(ou OBJECT ${OU_SRC})

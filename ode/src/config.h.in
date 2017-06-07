@@ -30,6 +30,12 @@
 #include <inttypes.h>
 #endif
 
+#cmakedefine dTRIMESH_ENABLED @dTRIMESH_ENABLED@
+#cmakedefine dTRIMESH_OPCODE @dTRIMESH_OPCODE@
+#cmakedefine dTRIMESH_GIMPACT @dTRIMESH_GIMPACT@
+#cmakedefine dOU_ENABLED @dOU_ENABLED@
+#cmakedefine dTLS_ENABLED @dTLS_ENABLED@
+
 #ifdef dSINGLE
 #define dEpsilon FLT_EPSILON
 #else
