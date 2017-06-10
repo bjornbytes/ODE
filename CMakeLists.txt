@@ -58,12 +58,12 @@ configure_file(include/ode/precision.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/o
 
 # Demos
 if(ODE_BUILD_DEMOS)
-  #add_subdirectory(demos)
+  # TODO
 endif()
 
 # Tests
 if(ODE_BUILD_TESTS)
-  #add_subdirectory(tests)
+  # TODO
 endif()
 
 # OU
@@ -73,11 +73,29 @@ if(ODE_WITH_OU)
   endif()
 
   add_definitions(-D_OU_NAMESPACE=odeou)
-  add_definitions(-DdATOMICS_ENABLED=1) # ?
+  add_definitions(-D_OU_FEATURE_SET=_OU_FEATURE_SET_TLS)
+  add_definitions(-DdATOMICS_ENABLED=1)
 
   include_directories(ou/include)
-  add_subdirectory(ou ou)
-  set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:ou>)
+  file(GLOB OU_SRC "ou/src/ou/*.cpp")
+endif()
+
+# LibCCD
+if(ODE_WITH_LIBCCD)
+  include_directories(libccd/src)
+  file(GLOB LIBCCD_SRC "libccd/src/*.c")
+  add_definitions(
+    -DdLIBCCD_ENABLED
+    -DdLIBCCD_INTERNAL
+    -DdLIBCCD_BOX_CYL
+    -DdLIBCCD_CYL_CYL
+    -DdLIBCCD_CAP_CYL
+    -DdLIBCCD_CONVEX_BOX
+    -DdLIBCCD_CONVEX_CAP
+    -DdLIBCCD_CONVEX_CYL
+    -DdLIBCCD_CONVEX_SPHERE
+    -DdLIBCCD_CONVEX_CONVEX
+  )
 endif()
 
 include_directories(include ode/src "${CMAKE_CURRENT_BINARY_DIR}/ode/src" "${CMAKE_CURRENT_BINARY_DIR}/include")
@@ -85,18 +103,14 @@ include_directories(include ode/src "${CMAKE_CURRENT_BINARY_DIR}/ode/src" "${CMA
 # ODE
 if(WIN32)
   if(ODE_BUILD_SHARED)
-    add_definitions(ODE_DLL)
+    add_definitions(-DODE_DLL)
   else()
-    add_definitions(ODE_LIB)
+    add_definitions(-DODE_LIB)
   endif()
 endif()
 
 set(ODE_SRC
-  ${ODE_SRC}
   ode/src/nextafterf.c
-  ode/src/array.cpp
-  ode/src/box.cpp
-  ode/src/capsule.cpp
   ode/src/array.cpp
   ode/src/box.cpp
   ode/src/capsule.cpp
@@ -130,6 +144,7 @@ set(ODE_SRC
   ode/src/odeou.cpp
   ode/src/odeinit.cpp
   ode/src/odemath.cpp
+  ode/src/odetls.cpp
   ode/src/plane.cpp
   ode/src/quickstep.cpp
   ode/src/ray.cpp
@@ -168,7 +183,7 @@ if(ODE_WITH_DIF_EXPORT)
 endif()
 
 if(ODE_WITH_TRIMESH)
-  set(ODE_SRC ${ODE_SRC}
+  set(ODE_TRIMESH_SRC
     ode/src/collision_trimesh_internal.cpp
     ode/src/collision_trimesh_box.cpp
     ode/src/collision_trimesh_ccylinder.cpp
@@ -176,26 +191,23 @@ if(ODE_WITH_TRIMESH)
     ode/src/collision_trimesh_ray.cpp
     ode/src/collision_trimesh_sphere.cpp
     ode/src/collision_trimesh_trimesh.cpp
-    ode/src/collision_trimesh_trimesh_old.cpp
     ode/src/collision_trimesh_plane.cpp
     ode/src/collision_convex_trimesh.cpp
   )
 
   if(ODE_WITH_GIMPACT)
-    add_subdirectory(GIMPACT GIMPACT)
+    file(GLOB_RECURSE GIMPACT_SRC "GIMPACT/*.cpp")
     include_directories(GIMPACT/include)
-    set(ODE_SRC ${ODE_SRC} ode/src/gimpact_contact_export_helper.cpp ode/src/collision_trimesh_gimpact.cpp)
-    set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:GIMPACT>)
+    set(GIMPACT_SRC ${GIMPACT_SRC} ode/src/gimpact_contact_export_helper.cpp ode/src/collision_trimesh_gimpact.cpp)
   else()
-    add_subdirectory(OPCODE OPCODE)
+    file(GLOB_RECURSE OPCODE_SRC "OPCODE/*.cpp")
     include_directories(OPCODE)
-    set(ODE_SRC ${ODE_SRC} ode/src/collision_trimesh_opcode.cpp)
-    set(ODE_SRC ${ODE_SRC} $<TARGET_OBJECTS:OPCODE>)
+    set(OPCODE_SRC ${OPCODE_SRC} ode/src/collision_trimesh_opcode.cpp)
   endif()
 endif()
 
 if(ODE_BUILD_SHARED)
-  add_library(ode SHARED ${ODE_SRC})
+  add_library(ode SHARED ${ODE_SRC} ${ODE_TRIMESH_SRC} ${OU_SRC} ${GIMPACT_SRC} ${OPCODE_SRC} ${LIBCCD_SRC})
 else()
-  add_library(ode STATIC ${ODE_SRC})
+  add_library(ode STATIC ${ODE_SRC} ${ODE_TRIMESH_SRC} ${OU_SRC} ${GIMPACT_SRC} ${OPCODE_SRC} ${LIBCCD_SRC})
 endif()
