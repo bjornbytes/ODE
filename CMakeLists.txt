@@ -82,7 +82,13 @@ endif()
 
 # LibCCD
 if(ODE_WITH_LIBCCD)
-  include_directories(libccd/src)
+  configure_file(libccd/src/ccd/precision.h.in "${CMAKE_CURRENT_BINARY_DIR}/libccd/src/ccd/precision.h")
+  include_directories(libccd/src "${CMAKE_CURRENT_BINARY_DIR}/libccd/src")
+  if(ODE_DOUBLE_PRECISION)
+    add_definitions(-DCCD_IDEDOUBLE)
+  else()
+    add_definitions(-DCCD_IDESINGLE)
+  endif()
   file(GLOB LIBCCD_SRC "libccd/src/*.c")
   add_definitions(
     -DdLIBCCD_ENABLED
