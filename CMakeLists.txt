@@ -6,7 +6,7 @@ option(ODE_BUILD_DEMOS "Build ODE demos" OFF)
 option(ODE_BUILD_TESTS "Build ODE tests" OFF)
 option(ODE_WITH_DIF_EXPORT "Build ODE with DIF export" OFF)
 option(ODE_WITH_GIMPACT "Build ODE with GIMPACT instead of OPCODE for trimesh collisions (if enabled)" OFF)
-option(ODE_WITH_LIBCCD "Build ODE with libccd for extra collision tests" OFF)
+option(ODE_WITH_LIBCCD "Build ODE with libccd for extra collision tests" ON)
 option(ODE_WITH_OU "Build ODE with OU for threaded collision tests" ON)
 option(ODE_WITH_TRIMESH "Build ODE with trimesh shapes" OFF)
 option(ODE_BUILD_SHARED "Build a shared library for ODE" OFF)
@@ -34,8 +34,10 @@ check_include_files(unistd.h HAVE_UNISTD_H)
 
 if(ODE_DOUBLE_PRECISION)
   set(ODE_PRECISION "dDOUBLE")
+  set(CCD_PRECISION "CCD_DOUBLE")
 else()
   set(ODE_PRECISION "dSINGLE")
+  set(CCD_PRECISION "CCD_SINGLE")
 endif()
 
 if(ODE_WITH_TRIMESH)
@@ -83,6 +85,8 @@ endif()
 # LibCCD
 if(ODE_WITH_LIBCCD)
   include_directories(libccd/src)
+  include_directories("${CMAKE_CURRENT_BINARY_DIR}/libccd/src")
+  configure_file(libccd/src/ccd/precision.h.in "${CMAKE_CURRENT_BINARY_DIR}/libccd/src/ccd/precision.h")
   file(GLOB LIBCCD_SRC "libccd/src/*.c")
   add_definitions(
     -DdLIBCCD_ENABLED
@@ -180,6 +184,10 @@ set(ODE_SRC
 
 if(ODE_WITH_DIF_EXPORT)
   set(ODE_SRC ${ODE_SRC} ode/src/export-dif.cpp)
+endif()
+
+if(ODE_WITH_LIBCCD)
+  set(ODE_SRC ${ODE_SRC} ode/src/collision_libccd.cpp)
 endif()
 
 if(ODE_WITH_TRIMESH)
