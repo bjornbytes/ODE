@@ -8,7 +8,7 @@ option(ODE_WITH_DIF_EXPORT "Build ODE with DIF export" OFF)
 option(ODE_WITH_GIMPACT "Build ODE with GIMPACT instead of OPCODE for trimesh collisions (if enabled)" OFF)
 option(ODE_WITH_LIBCCD "Build ODE with libccd for extra collision tests" ON)
 option(ODE_WITH_OU "Build ODE with OU for threaded collision tests" ON)
-option(ODE_WITH_TRIMESH "Build ODE with trimesh shapes" OFF)
+option(ODE_WITH_TRIMESH "Build ODE with trimesh shapes" ON)
 option(ODE_BUILD_SHARED "Build a shared library for ODE" OFF)
 option(ODE_DOUBLE_PRECISION "Build ODE with double precision math instead of single precision" OFF)
 
