@@ -85,7 +85,7 @@ endif()
 # LibCCD
 if(ODE_WITH_LIBCCD)
   include_directories(libccd/src)
-  include_directories("${CMAKE_CURRENT_BINARY_DIR}/libccd/src")
+  include_directories("libccd/src/custom" "${CMAKE_CURRENT_BINARY_DIR}/libccd/src")
   configure_file(libccd/src/ccd/precision.h.in "${CMAKE_CURRENT_BINARY_DIR}/libccd/src/ccd/precision.h")
   file(GLOB LIBCCD_SRC "libccd/src/*.c")
   add_definitions(
@@ -136,7 +136,7 @@ set(ODE_SRC
   ode/src/mass.cpp
   ode/src/mat.cpp
   ode/src/matrix.cpp
-  ode/src/fastldlt.cpp
+  ode/src/fastldltfactor.cpp
   ode/src/fastlsolve.cpp
   ode/src/fastltsolve.cpp
   ode/src/fastdot.cpp
@@ -160,6 +160,7 @@ set(ODE_SRC
   ode/src/threading_impl.cpp
   ode/src/threading_pool_posix.cpp
   ode/src/threading_pool_win.cpp
+  ode/src/default_threading.cpp
   ode/src/util.cpp
 
   ode/src/joints/amotor.cpp
