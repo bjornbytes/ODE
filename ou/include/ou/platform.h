@@ -77,6 +77,8 @@
 
 #elif defined(__APPLE__)
 
+#include <TargetConditionals.h>
+
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 
 #define _OU_TARGET_OS			_OU_TARGET_OS_IOS
